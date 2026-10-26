@@ -1,7 +1,27 @@
+-- Keep device-specific settings in wifi_config.lua (never commit that file).
+local ok, config = pcall(dofile, "wifi_config.lua")
+if not ok or type(config) ~= "table"
+    or type(config.ssid) ~= "string" or config.ssid == ""
+    or config.ssid == "YOUR_WIFI_SSID"
+    or type(config.password) ~= "string" or #config.password < 8 or #config.password > 64
+    or config.password == "YOUR_WIFI_PASSWORD" then
+    print("Configure wifi_config.lua using wifi_config.example.lua before startup")
+    return
+end
+
 wifi.setmode(wifi.STATION)
-wifi.sta.config("YOUR_WIFI_SSID","YOUR_WIFI_PASSWORD")
+wifi.sta.config(config.ssid, config.password)
 print(wifi.sta.getip())
-wifi.sta.setip({ip="192.168.43.115",netmask="255.255.255.0",gateway="192.168.43.1"})
+if config.static_ip then
+    if type(config.static_ip) ~= "table"
+        or type(config.static_ip.ip) ~= "string"
+        or type(config.static_ip.netmask) ~= "string"
+        or type(config.static_ip.gateway) ~= "string" then
+        print("Invalid static_ip configuration in wifi_config.lua")
+        return
+    end
+    wifi.sta.setip(config.static_ip)
+end
 right=1
 left=6
 
